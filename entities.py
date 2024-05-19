@@ -1,7 +1,7 @@
 from collections import UserDict
 from exceptions import PhoneFormatException, DuplicateContactException, DuplicatePhoneException, BirthDateIsInFutureException
 from datetime import datetime, timedelta
-import re
+import pickle
 
 class Field:
     def __init__(self, value):
@@ -69,11 +69,13 @@ class Record:
             phones_part = f', phones: {'; '.join(p.value for p in self.phones)}'
 
         if self.birthday != None:
-            birthday_part = f', {self.birthday.strftime('%d.%m.%Y')}'
+            birthday_part = f', {self.birthday.value.strftime('%d.%m.%Y')}'
         
         return f'Contact name: {self.name.value}{phones_part}{birthday_part}'
 
 class AddressBook(UserDict):
+    DEFAULT_FILE_NAME = 'book.pkl'
+
     def add_record(self, record: Record):
         if record.name in self.data:
             raise DuplicateContactException
@@ -123,4 +125,34 @@ class AddressBook(UserDict):
                 result.append({'name': contact.name.value, 'congratulation_date': birthday_this_year})
 
         return result
+    
+    @staticmethod
+    def save_data(book, filename=DEFAULT_FILE_NAME):
+        print('Saving contacts...', end = '')
+        try:
+            with open(filename, "wb") as f:
+                pickle.dump(book, f)
+                print('Done')
+        except:
+            print('Error')
+            print('Can\'t save address book to a file')
 
+    @staticmethod
+    def load_data(filename=DEFAULT_FILE_NAME):
+        print('Loading saved contacts...', end = '')
+        try:
+            with open(filename, "rb") as f:
+                result = pickle.load(f)
+                print(f'{len(result)} contacts loaded')
+                return result
+            
+        except FileNotFoundError:
+            print('Not found')
+            print('Creating empty address book')
+            return AddressBook()
+        
+        except:
+            print('Error')
+            print(f'There was an error loading contacts from {filename}. File could be corrupted')
+            print(f'Creating an empty address book. {filename} will be rewritten on exit.')
+            return AddressBook()

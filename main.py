@@ -118,7 +118,7 @@ def list(_, contacts: AddressBook):
     return result.removesuffix('\n')
 
 def main():
-    contacts = AddressBook()
+    contacts = AddressBook.load_data()
 
     print('Welcome to the assistant bot!')
 
@@ -127,6 +127,8 @@ def main():
         command, *args = parse_input(user_input)
 
         if command in ['close', 'exit']:
+
+            AddressBook.save_data(contacts)
             
             print('Good bye!')
 
